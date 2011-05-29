@@ -4,15 +4,14 @@
 
 int N; // dimension
 double h;
-
-int n = 2; // n bodies
-double x_bodies[2][2];
-double v_bodies[2][2];
-double m_bodies[2];
+int n; // n bodies
+double** x_bodies;
+double** v_bodies;
+double* m_bodies;
 int current_body;
-double G = 6.674e-11;
 
-// gravity test: G is 1 
+static double G = 6.674e-11;
+
 void gravity(double t, double* x, double* dx, double* result) {
     int i, j;
     double dist;
@@ -101,34 +100,61 @@ void runge_kutta(void f(double t, double* x, double* dx, double* result), double
 }
 
 int main(int argc, char** argv) {
-    int i, j;
-
-    N = 2;
-    h = 0.1;
-
+    int i, j, k;
+    int iterations;
     double t_0 = 0;
 
-    x_bodies[0][0] = 0;
-    x_bodies[0][1] = 0;
-    v_bodies[0][0] = 0;
-    v_bodies[0][1] = 0;
-    m_bodies[0] = 1e6;
-    m_bodies[1] = 1;
+    if (argc < 2) {
+        printf("No configuration file specified.");
+        return 1;
+    }
+
+    FILE* config = fopen(argv[1], "r");
+
+    if (!config) {
+        printf("Could not open file: %s", argv[1]);
+        return 2;
+    }
+
+    fscanf(config, "%d", &iterations);
+    fscanf(config, "%lf", &h);
+    fscanf(config, "%lf", &t_0);
+    fscanf(config, "%d", &N);
+    fscanf(config, "%d", &n);
     
-    x_bodies[1][0] = 100;
-    x_bodies[1][1] = 0;
-    v_bodies[1][0] = 0;
-    v_bodies[1][1] = 2e-2; 
+    x_bodies = (double**) malloc(n * sizeof(double*));
+    v_bodies = (double**) malloc(n * sizeof(double*));
+    m_bodies = (double*) malloc(n * sizeof(double));
+    for (i = 0; i < n; i++) {
+        x_bodies[i] = (double*) malloc(N * sizeof(double));
+        v_bodies[i] = (double*) malloc(N * sizeof(double));
+        
+        for (j = 0; j < N; j++) {
+                fscanf(config, "%lf", &x_bodies[i][j]);
+        }
+        
+        for (j = 0; j < N; j++) {
+                fscanf(config, "%lf", &v_bodies[i][j]);
+        }
+
+        fscanf(config, "%lf", &m_bodies[i]);
+    }
 
     FILE* out = fopen("data.txt", "w");
-    
-    for (i = 0; i < 200000; i++) {
+
+    for (i = 0; i < iterations; i++) {
         for (j = 0; j < n; j++) {
             current_body = j;
             runge_kutta(gravity, t_0 + i * h, x_bodies[j], v_bodies[j], x_bodies[j], v_bodies[j]);
         }
-        
-        fprintf(out, "%f %f %f %f\n", x_bodies[0][0], x_bodies[0][1], x_bodies[1][0], x_bodies[1][1]);
+
+        for (j = 0; j < n; j++) {
+            for (k = 0; k < N; k++) {
+                fprintf(out, "%lf ", x_bodies[j][k]);
+            }
+
+        }
+        fprintf(out, "\n");
     }
 
     fclose(out);
