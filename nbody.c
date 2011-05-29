@@ -29,7 +29,7 @@ void gravity(double t, double* x, double* dx, double* result) {
             }
 
             dist = sqrt(dist);
-            dist = 1.0 / dist * dist * dist;
+            dist = 1.0 / (dist * sqrt(dist)); 
             
             for (i = 0; i < N; i++) {
                 result[i] += G * m_bodies[j] * (x_bodies[j][i] - x[i]) * dist;
@@ -104,7 +104,7 @@ int main(int argc, char** argv) {
     int i, j;
 
     N = 2;
-    h = 0.00001;
+    h = 0.1;
 
     double t_0 = 0;
 
@@ -112,23 +112,23 @@ int main(int argc, char** argv) {
     x_bodies[0][1] = 0;
     v_bodies[0][0] = 0;
     v_bodies[0][1] = 0;
-    m_bodies[0] = 2e10;//divided by e20
-    m_bodies[1] = 6e4;
+    m_bodies[0] = 1e6;
+    m_bodies[1] = 1;
     
-    x_bodies[1][0] = 1.5e2; // divided by e20
+    x_bodies[1][0] = 100;
     x_bodies[1][1] = 0;
     v_bodies[1][0] = 0;
-    v_bodies[1][1] = 25780; 
+    v_bodies[1][1] = 2e-2; 
 
     FILE* out = fopen("data.txt", "w");
     
-    for (i = 0; i < 100000; i++) {
+    for (i = 0; i < 200000; i++) {
         for (j = 0; j < n; j++) {
             current_body = j;
             runge_kutta(gravity, t_0 + i * h, x_bodies[j], v_bodies[j], x_bodies[j], v_bodies[j]);
         }
         
-        fprintf(out, "%f %f\n", x_bodies[1][0], x_bodies[1][1]);
+        fprintf(out, "%f %f %f %f\n", x_bodies[0][0], x_bodies[0][1], x_bodies[1][0], x_bodies[1][1]);
     }
 
     fclose(out);
