@@ -103,6 +103,8 @@ int main(int argc, char** argv) {
     int i, j, k;
     int iterations;
     double t_0 = 0;
+    double** x_new;
+    double** v_new;
 
     if (argc < 2) {
         printf("No configuration file specified.");
@@ -125,9 +127,15 @@ int main(int argc, char** argv) {
     x_bodies = (double**) malloc(n * sizeof(double*));
     v_bodies = (double**) malloc(n * sizeof(double*));
     m_bodies = (double*) malloc(n * sizeof(double));
+    
+    x_new = (double**) malloc(n * sizeof(double*));
+    v_new = (double**) malloc(n * sizeof(double*));
+
     for (i = 0; i < n; i++) {
         x_bodies[i] = (double*) malloc(N * sizeof(double));
         v_bodies[i] = (double*) malloc(N * sizeof(double));
+        x_new[i] = (double*) malloc(N * sizeof(double));
+        v_new[i] = (double*) malloc(N * sizeof(double));
         
         for (j = 0; j < N; j++) {
                 fscanf(config, "%lf", &x_bodies[i][j]);
@@ -145,14 +153,21 @@ int main(int argc, char** argv) {
     for (i = 0; i < iterations; i++) {
         for (j = 0; j < n; j++) {
             current_body = j;
-            runge_kutta(gravity, t_0 + i * h, x_bodies[j], v_bodies[j], x_bodies[j], v_bodies[j]);
+            runge_kutta(gravity, t_0 + i * h, x_bodies[j], v_bodies[j], x_new[j], v_new[j]);
         }
 
         for (j = 0; j < n; j++) {
+            double* temp = x_bodies[j];
+            x_bodies[j] = x_new[j];
+            x_new[j] = temp;
+
+            temp = v_bodies[j];
+            v_bodies[j] = v_new[j];
+            v_new[j] = temp;
+
             for (k = 0; k < N; k++) {
                 fprintf(out, "%lf ", x_bodies[j][k]);
             }
-
         }
         fprintf(out, "\n");
     }
