@@ -28,7 +28,7 @@ void gravity(double t, double* x, double* dx, double* result) {
             }
 
             dist = sqrt(dist);
-            dist = 1.0 / (dist * sqrt(dist)); 
+            dist = 1.0 / (dist * dist * dist); 
             
             for (i = 0; i < N; i++) {
                 result[i] += G * m_bodies[j] * (x_bodies[j][i] - x[i]) * dist;
